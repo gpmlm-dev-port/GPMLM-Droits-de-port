@@ -32,24 +32,15 @@ def charger_navires():
     df.columns = df.columns.str.strip()
     navires = {}
     for _, row in df.iterrows():
-        compagnie = str(row["Compagnie"]).strip()
         navire = str(row["Nom du Navire"]).strip()
-        if compagnie == "nan" or navire == "nan" or compagnie == "" or navire == "":
+        if navire == "nan" or navire == "":
             continue
-        if compagnie not in navires:
-            navires[compagnie] = {}
-        navires[compagnie][navire] = {
+        navires[navire] = {
             "longueur": float(row["Longueur hors tout (m)"]),
             "largeur": float(row["Largueur maximal (m)"]),
             "tirant_eau": float(row["Tirant d'eau (m)"])
         }
     return navires
-
-try:
-    NAVIRES = charger_navires()
-except Exception as e:
-    st.error(f" Erreur lecture Excel : {e}")
-    NAVIRES = {}
 #-------------- FRÉQUENCE DES ESCALES--------------------------------
 @st.cache_data(ttl=300)
 def charger_escales():
@@ -596,34 +587,21 @@ with col2:
     tonnage = st.number_input("Tonnage (tonnes)", min_value=0.0, max_value=10.0, step=0.001, format="%.3f", key=str(st.session_state.form_key) + "_ton")
 
 with col1:
-    st.header ("Navire")
+    st.header("Navire")
     if NAVIRES:
-        representant = st.selectbox("Représentant", [""] + list(NAVIRES.keys()),index=0, placeholder="Sélectionner...", key=str(st.session_state.form_key) + "_rep")
-        tous_navires = list(set(
-            navire 
-            for compagnie in NAVIRES.values() 
-            for navire in compagnie.keys()
-        ))
-        tous_navires = [""] + sorted(list(set(
-            navire 
-            for compagnie in NAVIRES.values() 
-            for navire in compagnie.keys()
-)))
+        tous_navires = [""] + sorted(list(NAVIRES.keys()))
         nom_navire = st.selectbox("Nom du navire", tous_navires, index=0, placeholder="Sélectionner...", key=str(st.session_state.form_key) + "_nav")
         if nom_navire:
-            carac = next(
-                NAVIRES[c][nom_navire] 
-                for c in NAVIRES 
-                if nom_navire in NAVIRES[c]
-            )
+            carac = NAVIRES[nom_navire]
             longueur = carac["longueur"]
             largeur = carac["largeur"]
             tirant_eau = carac["tirant_eau"]
             st.info("Caractéristiques : L=" + str(longueur) + "m | b=" + str(largeur) + "m | Te=" + str(tirant_eau) + "m")
     else:
         st.warning("Aucune donnee de navire disponible.")
-        representant = nom_navire = ""
+        nom_navire = ""
         longueur = largeur = tirant_eau = 0
+    representant = st.selectbox("Représentant", [""] + list(ADRESSES.keys()), index=0, placeholder="Sélectionner...", key=str(st.session_state.form_key) + "_rep")
 # --------------- CALCUL AUTOMATIQUE DU NOMBRES D'ESCALES ---------------------------
     if nom_navire and date_entree:
         date_valide = verifier_date_escale(nom_navire, date_entree.strftime("%d/%m/%Y"))
