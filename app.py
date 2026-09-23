@@ -34,7 +34,7 @@ def charger_navires():
     for _, row in df.iterrows():
         compagnie = str(row["Compagnie"]).strip()
         navire = str(row["Nom du Navire"]).strip()
-        if compagnie == "nan" or navire == "nan" or compagnie == "" or navire == "":
+        if navire == "nan" or navire == "":
             continue
         if compagnie not in navires:
             navires[compagnie] = {}
